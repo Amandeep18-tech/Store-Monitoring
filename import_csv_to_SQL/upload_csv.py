@@ -152,4 +152,4 @@ def upload_timezone():
         connection.close()
     return True
 
-print(upload_timezone())
+print(upload_menu_hours())
