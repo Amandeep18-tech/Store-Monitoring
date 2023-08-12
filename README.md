@@ -44,7 +44,7 @@ CREATE TABLE store_status_within_hours AS
 
 ### 7. Generating Historical Data
 
-A `historical_data` table is generated, featuring fields such as `store_id`, `start_time`, `end_time`, and `status`. This table adheres to the logic that the initial entry's status from the start time until the next entry is considered, while the time interval between successive entries determines their respective statuses. The last entry for each day retains its status until the end time.
+A `historical_data` table is generated, featuring fields such as `store_id`, `start_time`, `end_time`, and `status`. This table adheres to the logic that the initial entry's status from the start time until the next entry is considered, while the time interval between successive entries determines their respective statuses. The last entry for each day retains its status until the end time. Since we are only considering, successive timelines, the overlapping would be reduced.
 
 ### 8. CSV Export
 
