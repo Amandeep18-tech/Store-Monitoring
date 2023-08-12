@@ -3,7 +3,6 @@ from celery.result import AsyncResult
 from flask import request
 from make_celery import flask_app,generate_csv
 import os
-
 @flask_app.route('/trigger_report', methods=['POST'])
 def trigger_report():
     result=generate_csv.delay()

@@ -37,37 +37,37 @@ def generate_csv():
         store_id = result[0]
         if store_id not in data:
             data[store_id] = {}
-        data[store_id]['uptime_last_hour(in minutes)'] = round(ceil(result[1] / 60),2)
+        data[store_id]['uptime_last_hour(in minutes)'] = round(result[1] / 60,2)
     
     for result in result_one_day_ago_active:
         store_id = result[0]
         if store_id not in data:
             data[store_id] = {}
-        data[store_id]['uptime_last_day(in hours)'] =round(ceil(result[1]/3600),2)
+        data[store_id]['uptime_last_day(in hours)'] =round(result[1]/3600,2)
     
     for result in result_one_week_ago_active:
         store_id = result[0]
         if store_id not in data:
             data[store_id] = {}
-        data[store_id]['update_last_week(in hours)'] = round(ceil(result[1]/3600),2)
+        data[store_id]['update_last_week(in hours)'] = round(result[1]/3600,2)
     
     for result in result_one_hour_ago_inactive:
         store_id = result[0]
         if store_id not in data:
             data[store_id] = {}
-        data[store_id]['downtime_last_hour(in minutes)'] = round(ceil(result[1] / 60),2)
+        data[store_id]['downtime_last_hour(in minutes)'] = round(result[1] / 60,2)
     
     for result in result_one_day_ago_inactive:
         store_id = result[0]
         if store_id not in data:
             data[store_id] = {}
-        data[store_id]['downtime_last_day(in hours)'] =round(ceil(result[1]/3600),2)
+        data[store_id]['downtime_last_day(in hours)'] =round(result[1]/3600,2)
     
     for result in result_one_week_ago_inactive:
         store_id = result[0]
         if store_id not in data:
             data[store_id] = {}
-        data[store_id]['downtime_last_week(in hours)'] = round(ceil(result[1]/3600),2)
+        data[store_id]['downtime_last_week(in hours)'] = round(result[1]/3600,2)
     file_name="result_"+str(report_id)+".csv"
     # Write results to CSV
     with open(file_name, mode='w', newline='') as csv_file:
