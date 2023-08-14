@@ -67,3 +67,35 @@ The implementation of Celery streamlines API triggers and enforces a polling arc
 ## Conclusion
 
 Following these meticulously outlined steps empowers you to achieve uniform timestamp handling, streamlined data comparison, comprehensive historical data generation, and efficient CSV export. This process significantly enhances data analysis capabilities, supporting deeper exploration of store status and operating hours over a specified timeframe, alongside uptime and downtime calculations for a specific status.
+
+## Future Scope
+
+As the project evolves, there are opportunities for further enhancement and refinement. One key area of focus for future development is the handling of continuous data updates.
+
+### Incremental Data Updates
+
+Currently, the initial data load has been successfully implemented. However, as the dataset undergoes updates on an hourly basis, there is a need to incorporate a mechanism for efficiently updating the database with the most recent data.
+
+To address this, the following approach will be taken:
+
+1. **Hourly Data Updates:** Implement a scheduled job or script that runs at regular intervals (e.g., every hour) to fetch and process the latest data changes.
+
+2. **SQL Insert Ignore:** Utilize the `INSERT IGNORE` SQL statement to insert new data rows into the database. This statement will ensure that only unique rows are inserted, preventing duplicate entries.
+
+3. **Primary Key and Uniqueness:** Define a set of columns as a composite primary key or unique constraint. This selection should be based on the characteristics of the data that ensure uniqueness and accurate identification of rows.
+
+By following these steps, the system will be able to efficiently manage the ongoing updates to the dataset without compromising data integrity or database performance.
+
+### Benefits of Future Enhancements
+
+Implementing the above future scope will provide several benefits:
+
+- **Real-time Updates:** The system will stay up-to-date with the latest data changes, enabling users to access the most current information.
+
+- **Efficient Utilization:** By employing `INSERT IGNORE` and well-defined primary key constraints, the database updates will be streamlined, reducing the processing time and resources required for data updates.
+
+- **Data Integrity:** The chosen unique identifier columns will ensure that the correct data is being updated while maintaining data integrity.
+
+- **Scalability:** With a well-structured update mechanism, the system can easily accommodate increased data volumes and update frequencies in the future.
+
+Incorporating these enhancements will further solidify the system's ability to handle continuous data updates, providing a robust and reliable foundation for ongoing data management and analysis.
