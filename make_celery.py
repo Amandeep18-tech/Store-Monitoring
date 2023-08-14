@@ -1,14 +1,16 @@
 from celery_config import create_app
 from celery import shared_task
 import uuid
-from utilities.sql_access import get_connection
 from math import ceil
 import csv
-import time
+import constants
+from utilities.sql_utilities import MySQLCRUDUtility
+from utilities.dml_queries import DMLQueries
 
+sql_obj=MySQLCRUDUtility(constants.db_config)
+dml_queries=DMLQueries()
 flask_app = create_app()
 celery_app = flask_app.extensions["celery"]
-
 
 # Define a Celery task
 
@@ -16,23 +18,19 @@ celery_app = flask_app.extensions["celery"]
 def generate_csv():
     report_id = str(uuid.uuid4())
     # Define the current time and intervals
-    current_time = '2023-01-25 14:13:22'
-    one_hour_ago = 'DATE_SUB("' + current_time + '", INTERVAL 1 HOUR)'
-    one_day_ago = 'DATE_SUB("' + current_time + '", INTERVAL 1 DAY)'
-    one_week_ago = 'DATE_SUB("' + current_time + '", INTERVAL 1 WEEK)'
-    
+   
     # Calculate results for different time intervals and statuses
-    result_one_hour_ago_active = calculate_total_time_query_active(one_hour_ago, current_time, 'active')
-    result_one_day_ago_active = calculate_total_time_query_active(one_day_ago, current_time, 'active')
-    result_one_week_ago_active = calculate_total_time_query_active(one_week_ago, current_time, 'active')
+    result_one_hour_ago_active = calculate_total_time_query_active(constants.one_hour_ago , constants.current_max_time, 'active')
+    result_one_day_ago_active = calculate_total_time_query_active(constants.one_day_ago , constants.current_max_time, 'active')
+    result_one_week_ago_active = calculate_total_time_query_active(constants.one_week_ago , constants.current_max_time, 'active')
     
-    result_one_hour_ago_inactive = calculate_total_time_query_active(one_hour_ago, current_time, 'inactive')
-    result_one_day_ago_inactive = calculate_total_time_query_active(one_day_ago, current_time, 'inactive')
-    result_one_week_ago_inactive = calculate_total_time_query_active(one_week_ago, current_time, 'inactive')
+    result_one_hour_ago_inactive = calculate_total_time_query_active(constants.one_hour_ago , constants.current_max_time, 'inactive')
+    result_one_day_ago_inactive = calculate_total_time_query_active(constants.one_day_ago , constants.current_max_time, 'inactive')
+    result_one_week_ago_inactive = calculate_total_time_query_active(constants.one_week_ago , constants.current_max_time, 'inactive')
     
     # Prepare the data for CSV
     data = {}
-    
+    sql_obj.disconnect()
     for result in result_one_hour_ago_active:
         store_id = result[0]
         if store_id not in data:
@@ -69,6 +67,7 @@ def generate_csv():
             data[store_id] = {}
         data[store_id]['downtime_last_week(in hours)'] = round(result[1]/3600,2)
     file_name="result_"+str(report_id)+".csv"
+    
     # Write results to CSV
     with open(file_name, mode='w', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
@@ -92,21 +91,10 @@ def generate_csv():
 
     return file_name
 
+#query to get uptime and downtime 
 def calculate_total_time_query_active(time_interval,current_time,status):
-    connection=get_connection()
-    cursor = connection.cursor()
-    query = f'''
-    SELECT 
-    store_id,
-    SUM(TIMESTAMPDIFF(SECOND, GREATEST({time_interval}, start_time), LEAST(end_time, "{current_time}"))) AS uptime 
-    FROM historical_data
-    WHERE status = "{status}"
-    AND start_time < "{current_time}"
-    AND end_time > {time_interval}
-    GROUP BY store_id;
-    '''
-    cursor.execute(query)
-    return cursor.fetchall()
+    sql_obj.connect()
+    return sql_obj.read(dml_queries.query_data_in_historical_table(time_interval,current_time,status))
 
 
 

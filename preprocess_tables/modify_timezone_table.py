@@ -1,73 +1,62 @@
-from utilities.sql_access import get_connection
-import mysql.connector
+from utilities.sql_utilities import MySQLCRUDUtility
+from utilities.dml_queries import DMLQueries
+from utilities.ddl_queries import DDLQueries
+import constants
 import pytz
-from datetime import datetime, timedelta
-def update_missing_timezones():
-    try:
-        connection = get_connection()
-        cursor = connection.cursor()
+from datetime import datetime
 
-        # Find missing store_id values in store_timezone
-        missing_store_ids_query = """
-        SELECT DISTINCT(store_id)
-        FROM store_status
-        WHERE store_id NOT IN (SELECT store_id FROM store_timezone)
-        """
-        cursor.execute(missing_store_ids_query)
-        missing_store_ids = [row[0] for row in cursor.fetchall()]
-
-        # Insert missing store_id values with default timezone_str
-        insert_query = """
-        INSERT INTO store_timezone (store_id, timezone_str)
-        VALUES (%s, 'America/Chicago')
-        """
-        for store_id in missing_store_ids:
-            cursor.execute(insert_query, (store_id,))
-            connection.commit()
-
-    except mysql.connector.Error as err:
-        print("Error:", err)
-        connection.rollback()
-
-    finally:
-        cursor.close()
-        connection.close()
-
-def update_timezone_to_offset():
-  
-    connection = get_connection()
-    cursor = connection.cursor()
-
-
-    # Step 1: Add a new column to Table-3 to store the UTC offset
-    alter_table_sql = "ALTER TABLE store_timezone ADD COLUMN utc_offset VARCHAR(10)"
-
-    # Execute the SQL statement to add the new column
-    cursor.execute(alter_table_sql)
-
-    # Fetch data from Table-3
-    select_data_sql = "SELECT store_id, timezone_str FROM store_timezone"
-    cursor.execute(select_data_sql)
-    rows = cursor.fetchall()
-
-    # Step 2: Convert timezone_str to UTC offset and update the new column
-    update_utc_offset_sql = "UPDATE store_timezone SET utc_offset = %s WHERE store_id = %s"
-
-    for row in rows:
-        store_id = row[0]
-        timezone_str = row[1]
-        timezone_value= str(datetime.now(pytz.timezone(timezone_str)))
-        len_time=len(timezone_value)
-        timezone_offset=timezone_value[len_time-6:len_time]
+class ModifyTimezoneTable:
+    def __init__(self):
+        self.my_sql_obj=MySQLCRUDUtility(constants.db_config)
+        self.dml_queries=DMLQueries()
+        self.ddl_queries=DDLQueries()
         
-        # Execute the SQL statement to update the utc_offset
-        cursor.execute(update_utc_offset_sql, (timezone_offset, store_id))
+    def update_missing_timezones(self):
+        """ update missing timezone with America/Chicago
+        """
+        self.my_sql_obj.connect()
+        # Find missing store_id values in store_timezone
+        missing_store_ids = [row[0] for row in self.my_sql_obj.read(self.dml_queries.missing_store_id_timezone())]
+        data_list=[]
+        for store_id in missing_store_ids:
+            data=(store_id,)
+            data_list.append(data)
+        
+        self.my_sql_obj.execute_insert_update_many(self.dml_queries.insert_query_update_missing_timezone(),data_list)
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
 
-    # Commit the changes and close the connection
-    connection.commit()
-    cursor.close()
-    connection.close()
+    def add_column_offset(self):
+        """add timezone offset column
+        """
+        self.my_sql_obj.connect()
+        self.my_sql_obj.execute_query(self.ddl_queries.alter_table_add_timezone_offset_column())
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
+        
+    def update_timezone_to_offset(self):
+        """update timezone offset column with values
+        """
+        self.my_sql_obj.connect()
+        # Fetch data from Table-3
+        rows = self.my_sql_obj.read(self.dml_queries.select_query_store_timezone())
+        # Step 2: Convert timezone_str to UTC offset and update the new column
+        data_list=[]
+        for row in rows:
+            store_id = row[0]
+            timezone_str = row[1]
+            timezone_value= str(datetime.now(pytz.timezone(timezone_str)))
+            len_time=len(timezone_value)
+            timezone_offset=timezone_value[len_time-6:len_time]
+            data=(timezone_offset, store_id)
+            data_list.append(data)
+            # Execute the SQL statement to update the utc_offset
+        self.my_sql_obj.execute_insert_update_many(self.dml_queries.update_query_store_timezone(),data_list)
+        # Commit the changes and close the connection
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
 
-# Call the function to update missing timezones
-# update_missing_timezones()
-update_timezone_to_offset()
+update_timzone=ModifyTimezoneTable()
+update_timzone.update_missing_timezones()
+update_timzone.add_column_offset()
+update_timzone.update_timezone_to_offset()

@@ -1,39 +1,37 @@
-import mysql.connector
-from utilities.sql_access import get_connection
+from utilities.sql_utilities import MySQLCRUDUtility
+from utilities.ddl_queries import DDLQueries
+import constants
 
-def create_index_on_store_timezone():
-# Connect to the MySQL database
+class CreateIndex:
+    def __init__(self):
+        self.my_sql_obj=MySQLCRUDUtility(constants.db_config)
+        self.ddl_queries=DDLQueries()
+    def create_index_on_store_timezone(self):
+        """Create index on store timezone table
+        """
 
-    connection=get_connection()
-    cursor = connection.cursor()
+        self.my_sql_obj.connect()
 
-    # SQL statement to create an index on the store_id column
-    create_index_sql = "CREATE INDEX idx_store_id ON store_timezone (store_id)"
+        # SQL statement to create an index on the store_id column
+        # Execute the SQL statement
+        self.my_sql_obj.execute_query(self.ddl_queries.create_index_on_store_timezone())
 
-    # Execute the SQL statement
-    cursor.execute(create_index_sql)
+        # Commit the changes and close the connection
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
+        
+        
+    def create_index_on_menu_hours(self):
+        """Create index on menu hours table
+        """
 
-    # Commit the changes and close the connection
-    connection.commit()
-    cursor.close()
-    connection.close()
+        self.my_sql_obj.connect()
+        self.my_sql_obj.execute_query(self.ddl_queries.create_index_on_menu_hours())
 
-def create_index_on_menu_hours():
-# Connect to the MySQL database
+        # Commit the changes and close the connection
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
 
-    connection=get_connection()
-    cursor = connection.cursor()
-
-    # SQL statement to create an index on the store_id column
-    create_index_sql = "CREATE INDEX idx_store_id ON menu_hours (store_id)"
-
-    # Execute the SQL statement
-    cursor.execute(create_index_sql)
-
-    # Commit the changes and close the connection
-    connection.commit()
-    cursor.close()
-    connection.close()
-    
-# create_index_on_store_timezone()
-create_index_on_menu_hours()
+create_index=CreateIndex()
+# create_index.create_index_on_menu_hours()
+create_index.create_index_on_store_timezone()

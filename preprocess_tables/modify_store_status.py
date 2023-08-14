@@ -1,112 +1,73 @@
-from utilities.sql_access import get_connection
+from utilities.sql_utilities import MySQLCRUDUtility
+from utilities.dml_queries import DMLQueries
+from utilities.ddl_queries import DDLQueries
+import constants
 
-def add_local_time_column():
-    connection=get_connection()
-    cursor = connection.cursor()
-    # SQL statement to create the local_time column in Table-1
-    create_column_sql = "ALTER TABLE store_status ADD COLUMN IF NOT EXISTS local_time DATETIME"
-
-    # Execute the SQL statement to create the column
-    cursor.execute(create_column_sql)
-    
-    
-def update_menu_hours_to_utc():
-
-    connection=get_connection()
-    cursor = connection.cursor()
-
-    # SQL statement to update local_time in Table-1 using JOIN with Table-3
-    update_local_time_sql = """
-        UPDATE store_status t1
-        JOIN store_timezone t3 ON t1.store_id = t3.store_id
-        SET t1.local_time = CONVERT_TZ(t1.timestamp_utc, '+00:00',t3.utc_offset)
-    """
-    
-    # Execute the SQL statement to update local_time
-    cursor.execute(update_local_time_sql)
-
-    # Commit the changes and close the connection
-    connection.commit()
-    cursor.close()
-    connection.close()
-    
-def add_custom_day_column():
-
-    connection=get_connection()
-    cursor = connection.cursor()
-    # Add the custom_day_number column to Table-1 if it doesn't exist
-    add_column_sql = """
-        ALTER TABLE store_status
-        ADD COLUMN custom_day_number INT
-    """
-
-    # Execute the SQL statement to add the column
-    cursor.execute(add_column_sql)
-    connection.commit()
-    cursor.close()
-    connection.close()
-    
-def update_custom_day_number():
-    connection=get_connection()
-    cursor = connection.cursor()
-    # Update the custom_day_number using the provided formula
-    update_custom_day_sql = """
-        UPDATE store_status
-        SET custom_day_number = (DAYOFWEEK(local_time) + 5) % 7
-    """
-
-    # Execute the SQL statement to update custom_day_number
-    cursor.execute(update_custom_day_sql)
-
-    # Commit the changes and close the connection
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-def add_start_end_local_time_columns():
-    
-
-    connection=get_connection()
-    cursor = connection.cursor()
-
-    # Add the start_time_local and end_time_local columns to Table-1 if they don't exist
-    add_columns_sql = """
-        ALTER TABLE store_status
-        ADD COLUMN start_time_local DATETIME,
-        ADD COLUMN end_time_local DATETIME
-    """
-
-    # Execute the SQL statement to add the columns
-    cursor.execute(add_columns_sql)
-    connection.commit()
-    cursor.close()
-    connection.close()
-    
-def update_start_end_columns():
-    connection=get_connection()
-    cursor = connection.cursor()
-
-    # Update start_time_local and end_time_local using the provided JOIN and CONCAT
-    update_time_sql = """
-        UPDATE store_status t1
-        JOIN menu_hours t2 ON t1.store_id = t2.store_id AND t1.custom_day_number = t2.day
-        SET t1.start_time_local = CONCAT(DATE(t1.local_time), ' ', t2.start_time_local),
-            t1.end_time_local = CONCAT(DATE(t1.local_time), ' ', t2.end_time_local)
-    """
-
-    # Execute the SQL statement to update start_time_local and end_time_local
-    cursor.execute(update_time_sql)
-
-    # Commit the changes and close the connection
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-# update_menu_hours_to_utc()
-# add_custom_day_column()
-# update_custom_day_number()
-
-# add_start_end_local_time_columns()
-update_start_end_columns()
+class ModifyStoreStatusTable:
+    def __init__(self):
+        self.my_sql_obj=MySQLCRUDUtility(constants.db_config)
+        self.dml_queries=DMLQueries()
+        self.ddl_queries=DDLQueries()
+        
+    def add_local_time_column(self):
+        """Add local time column to store status table
+        """
+        self.my_sql_obj.connect()
+        self.my_sql_obj.execute_query(self.ddl_queries.alter_table_add_local_time_column())
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
+        
+        
+    def update_menu_hours_to_local_time(self):
+        """update utc time to local time
+        """
+        self.my_sql_obj.connect()
+        self.my_sql_obj.execute_query(self.dml_queries.update_menu_hours_to_local_timezone())
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
+        
+    def add_custom_day_column(self):
+        """add custom day number to store status
+        """
+        
+        self.my_sql_obj.connect()
+        self.my_sql_obj.execute_query(self.ddl_queries.add_custom_day_column())
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
+        
+        
+    def update_custom_day_number(self):
+        """update custom day number
+        """
+        self.my_sql_obj.connect()
+        self.my_sql_obj.execute_query(self.dml_queries.update_custom_day())
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
+        # Update the custom_day_number using the provided formula
+        
+        
+    def add_start_end_local_time_columns(self):
+        """add column start time and end time to store status
+        """
+        self.my_sql_obj.connect()
+        self.my_sql_obj.execute_query(self.ddl_queries.add_start_end_time_column())
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
+        
+    def update_start_end_columns(self):
+        """update start time and end time columns in store status"""
+        self.my_sql_obj.connect()
+        self.my_sql_obj.execute_query(self.dml_queries.update_store_status_start_end_time())
+        self.my_sql_obj.commit()
+        self.my_sql_obj.disconnect()
 
 
+
+modify_store_status=ModifyStoreStatusTable()
+# modify_store_status.add_local_time_column()
+# modify_store_status.add_custom_day_column()
+modify_store_status.add_start_end_local_time_columns()
+
+# modify_store_status.update_menu_hours_to_local_time()
+# modify_store_status.update_custom_day_number()
+modify_store_status.update_start_end_columns()
