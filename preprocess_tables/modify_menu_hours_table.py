@@ -1,5 +1,5 @@
 from utilities.sql_utilities import MySQLCRUDUtility
-from utilities.dml_queries import DMLQueries
+from sql_queries.dml_queries import DMLQueries
 import constants
 
 class UpdateMenuHoursTable:

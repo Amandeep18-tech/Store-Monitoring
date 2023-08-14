@@ -1,6 +1,6 @@
 from utilities.sql_utilities import MySQLCRUDUtility
-from utilities.dml_queries import DMLQueries
-from utilities.ddl_queries import DDLQueries
+from sql_queries.dml_queries import DMLQueries
+from sql_queries.ddl_queries import DDLQueries
 import constants
 
 class HistoricalData:
@@ -64,7 +64,7 @@ class HistoricalData:
             data_list.append(data)
        
         self.my_sql_obj.execute_insert_update_many(self.dml_queries.insert_data_in_historical_table(),data_list)
-        self.my_sql_obj.commit()
+        # self.my_sql_obj.commit()
         self.my_sql_obj.disconnect()
 
 

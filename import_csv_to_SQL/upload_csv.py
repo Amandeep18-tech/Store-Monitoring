@@ -4,8 +4,8 @@ from tqdm import tqdm
 from datetime import datetime
 from utilities.sql_utilities import MySQLCRUDUtility
 import constants
-from utilities.dml_queries import DMLQueries
-from utilities.ddl_queries import DDLQueries
+from sql_queries.dml_queries import DMLQueries
+from sql_queries.ddl_queries import DDLQueries
 
 class CSVUploader:
     def __init__(self):

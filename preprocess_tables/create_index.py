@@ -1,5 +1,5 @@
 from utilities.sql_utilities import MySQLCRUDUtility
-from utilities.ddl_queries import DDLQueries
+from sql_queries.ddl_queries import DDLQueries
 import constants
 
 class CreateIndex:

@@ -5,7 +5,7 @@ from math import ceil
 import csv
 import constants
 from utilities.sql_utilities import MySQLCRUDUtility
-from utilities.dml_queries import DMLQueries
+from sql_queries.dml_queries import DMLQueries
 
 sql_obj=MySQLCRUDUtility(constants.db_config)
 dml_queries=DMLQueries()
